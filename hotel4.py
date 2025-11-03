@@ -535,9 +535,6 @@ if page == "📈 Visualisasi":
                      box=True, points='all',
                      color_discrete_sequence=[COLORS['orange'], COLORS['purple']],
                      title='Distribusi Lama Menginap antara City dan Resort Hotel')
-    fig3.add_annotation(text="Resort Hotel: durasi menginap lebih panjang",
-                        x=0.95, y=0.95, xref="paper", yref="paper",
-                        showarrow=False, font=dict(size=12, color="yellow"))
     st.plotly_chart(fig3, use_container_width=True)
 
     st.markdown("""
@@ -637,34 +634,88 @@ if page == "📈 Visualisasi":
         """)
 
     # =========================================================
-    # 5. Treemap – Struktur Pembatalan Berdasarkan Channel dan Market Segment
+    # 5. Treemap Interaktif – Struktur Pembatalan Berdasarkan Channel dan Tipe Pelanggan
     # =========================================================
-    st.subheader("🧩 5. Treemap – Struktur Pembatalan Berdasarkan Channel dan Market Segment")
+    st.subheader("🧩 5. Treemap Interaktif – Struktur Pembatalan Berdasarkan Channel dan Tipe Pelanggan")
 
-    cancel_treemap = df.groupby(['channel', 'market_segment'])['canceled'].mean().reset_index()
-    top_segment = cancel_treemap.sort_values('canceled', ascending=False).head(1)
-    fig5 = px.treemap(cancel_treemap, path=['channel', 'market_segment'],
-                      values='canceled', color='canceled',
-                      color_continuous_scale='RdPu',
-                      title='Struktur Pembatalan Berdasarkan Channel dan Segment')
-    # fig5.add_annotation(text=f"{top_segment.iloc[0]['market_segment']} ({top_segment.iloc[0]['channel']}) tertinggi",
-    #                     x=0.95, y=0.95, xref="paper", yref="paper",
-    #                     showarrow=False, font=dict(size=25, color="blue"))
-    st.plotly_chart(fig5, use_container_width=True)
+    # Buat daftar channel unik untuk dropdown filter (tanpa undefined)
+    available_channels = df.loc[df['channel'].notna() & (df['channel'] != 'Undefined'), 'channel'].unique()
+    selected_channel = st.selectbox("Pilih Channel Distribusi:", options=available_channels, index=0)
+
+    # Filter data berdasarkan pilihan channel dan hapus baris yang tidak valid
+    filtered_data = df[
+        (df['channel'] == selected_channel) &
+        (df['customer_type'].notna()) &
+        (df['customer_type'] != 'Undefined')
+    ]
+
+    # Grouping data pembatalan
+    cancel_treemap = (
+        filtered_data.groupby(['channel', 'customer_type'])['canceled']
+        .mean()
+        .reset_index()
+    )
+
+    # Buat Treemap
+    fig = px.treemap(
+        cancel_treemap,
+        path=['channel', 'customer_type'],
+        values='canceled',
+        color='canceled',
+        color_continuous_scale='RdPu',
+        title=f"📊 Struktur Pembatalan untuk Channel: {selected_channel}",
+        hover_data={'canceled': ':.2f'}
+    )
+
+    # Tambahkan label
+    fig.update_traces(
+        textinfo='label+value+percent parent',
+        texttemplate="<b>%{label}</b><br>Rasio: %{value:.2f}<br>(%{percentParent:.1%})",
+        textfont_size=13,
+        marker=dict(line=dict(width=2, color='white'))
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Insight dinamis
+    avg_cancel = cancel_treemap['canceled'].mean()
+    max_segment = cancel_treemap.loc[cancel_treemap['canceled'].idxmax()]
+
 
     st.markdown("""
     **Tujuan:**  
-    Mengetahui kontribusi masing-masing channel distribusi dan segmen pasar terhadap tingkat pembatalan.  
-
-    **Analisis:**  
-    - Segmen *Groups* dan channel *TA/TO (Travel Agent/Tour Operator)* mendominasi proporsi pembatalan.  
-    - Channel *Corporate* dan *Direct* menunjukkan stabilitas yang lebih baik dengan tingkat pembatalan rendah.  
+    Mengetahui kontribusi dan kecenderungan pembatalan pemesanan berdasarkan *saluran distribusi (channel)* serta *tipe pelanggan (customer type)*.  
+    Visualisasi ini membantu memahami bagaimana pola pembatalan berbeda antara pelanggan individual, grup, dan kontrak melalui berbagai jalur pemesanan.
     """)
+
+    st.markdown(f"""
+    **Analisis dan Interpretasi – Channel {selected_channel}:**  
+    - Rata-rata pembatalan: **{avg_cancel:.2%}**  
+    - Tipe pelanggan dengan pembatalan tertinggi: **{max_segment['customer_type']}** ({max_segment['canceled']:.2%})  
+
+    Channel **{selected_channel}** menunjukkan variasi tingkat pembatalan antar tipe pelanggan.  
+    Tipe **{max_segment['customer_type']}** menjadi penyumbang terbesar terhadap rasio pembatalan, menandakan adanya potensi risiko pada segmen ini.  
+    """)
+
+    st.markdown("""
+    ---
+
+    ### 🧩 Kesimpulan Umum:
+    - Channel **TA/TO (Travel Agent/Tour Operator)** mendominasi proporsi pembatalan secara keseluruhan.  
+    Dalam channel ini, pelanggan **Transient** menunjukkan tingkat pembatalan **tertinggi**, mencerminkan fleksibilitas tinggi tamu individu.  
+    - Channel **Corporate** menunjukkan tingkat pembatalan **menengah**, terutama pada segmen **Contract** dan **Transient-Party**, yang sering kali terkait dengan perjalanan bisnis.  
+    - Channel **Direct** memiliki tingkat pembatalan **paling rendah**, khususnya pada pelanggan **Contract** dan **Group**, yang menunjukkan loyalitas serta komitmen lebih kuat terhadap pemesanan langsung.  
+    - Channel **GDS** memiliki volume kecil namun stabil, dengan pembatalan rendah pada pelanggan **Transient**.  
+    """)
+
+
     with st.expander("📊 Kenapa Treemap:"):
         st.markdown("""
-        - Mampu menampilkan hubungan hierarkis antar kategori dengan ukuran area yang proporsional terhadap nilai pembatalan.  
-        - Warna memperkuat perbedaan antar kelompok secara visual.
+        - Menampilkan **hubungan hierarkis** antara channel dan tipe pelanggan secara intuitif.  
+        - Ukuran area menunjukkan **kontribusi volume pembatalan**, sedangkan warna menunjukkan **tingkat pembatalan relatif**.  
+        - Efektif untuk memahami **struktur risiko pembatalan** dalam sistem distribusi hotel.  
         """)
+
 
     # =========================================================
     # 6. Stacked Horizontal Bar Chart – Pembatalan Berdasarkan Jenis Deposit 
@@ -845,6 +896,11 @@ if page == "📈 Visualisasi":
         title='Sebaran Harga per Malam Berdasarkan Jenis Makanan dan Jenis Hotel'
     )
     top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax()
+    fig10.add_annotation(
+        text=f"{top_meal} = harga tertinggi",
+        x=0.95, y=0.95, xref="paper", yref="paper",
+        showarrow=False, font=dict(size=12, color="white")
+    )
     st.plotly_chart(fig10, use_container_width=True)
 
     meal_mean = df.groupby('meal_type')['avg_daily_rate'].mean().sort_values(ascending=False)
@@ -853,8 +909,8 @@ if page == "📈 Visualisasi":
     Membandingkan variasi harga kamar berdasarkan jenis layanan makanan dan tipe hotel.  
 
     **Analisis:**  
-    - Harga kamar per malam di Resort Hotel cenderung lebih tinggi dan bervariasi dibandingkan City Hotel untuk semua jenis paket makanan.
-    - Paket HB (Half Board) memiliki median harga tertinggi, sedangkan SC (Self Catering) dan Undefined menunjukkan banyak outlier dengan sebaran harga yang tidak menentu.
+    - Jenis makanan “Full Board” memiliki rata-rata harga kamar tertinggi (**{meal_mean.iloc[0]:.2f}**).  
+    - Perbedaan antar meal type menunjukkan bahwa layanan makanan turut memengaruhi strategi harga kamar.  
     """)
     with st.expander("📊 Kenapa Box Plot:"):
         st.markdown("""
