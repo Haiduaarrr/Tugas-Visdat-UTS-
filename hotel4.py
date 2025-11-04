@@ -815,8 +815,7 @@ if page == "📈 Visualisasi":
 
     **Analisis:**  
     - City Hotel menunjukkan fluktuasi besar dengan puncak pemesanan di bulan pertengahan tahun (musim liburan).  
-    - Resort Hotel memiliki tren yang lebih stabil, tetapi volume pemesanan lebih kecil secara keseluruhan.
-    - Januari dan November tampak menjadi bulan-bulan tersepi untuk kedua jenis hotel. Penurunan paling tajam untuk City Hotel terjadi antara Agustus dan Oktober.
+    - Resort Hotel memiliki tren yang lebih stabil, tetapi volume pemesanan lebih kecil secara keseluruhan.  
     """)
     with st.expander("📊 Kenapa Line Chart:"):
         st.markdown("""
@@ -845,9 +844,7 @@ if page == "📈 Visualisasi":
 
     **Analisis:**  
     - Mayoritas tamu merupakan pelanggan *Transient* (individu tanpa kontrak).  
-    - Jenis pelanggan *Group* dan *Contract* memiliki proporsi kecil, menunjukkan sebagian besar pelanggan datang untuk perjalanan pribadi.
-    - Jika kita menggabungkan pelanggan Transient (75%) dan Transient-Party (21.1%), totalnya mencapai 96.1 persen dari seluruh pemesanan. Menunjukkan bahwa bisnis hotel sangat bergantung pada pelancong individu atau grup kecil yang memesan secara ad-hoc (tidak terikat kontrak). 
-    - Pelanggan Contract (korporat atau agen perjalanan dengan tarif khusus) dan Group (rombongan tur, konferensi) secara gabungan hanya menyumbang kurang dari 4 persen dari total pemesanan. 
+    - Jenis pelanggan *Group* dan *Contract* memiliki proporsi kecil, menunjukkan sebagian besar pelanggan datang untuk perjalanan pribadi.  
     """)
     with st.expander("📊 Kenapa Pie Chart:"):
         st.markdown("""
@@ -912,7 +909,7 @@ if page == "📈 Visualisasi":
     Membandingkan variasi harga kamar berdasarkan jenis layanan makanan dan tipe hotel.  
 
     **Analisis:**  
-    - Jenis makanan “Full Board” memiliki rata-rata harga kamar tertinggi (**{meal_mean.iloc[0]:.2f}**).  
+    - Jenis makanan “Half Board” memiliki rata-rata harga kamar tertinggi.  
     - Perbedaan antar meal type menunjukkan bahwa layanan makanan turut memengaruhi strategi harga kamar.  
     """)
     with st.expander("📊 Kenapa Box Plot:"):
