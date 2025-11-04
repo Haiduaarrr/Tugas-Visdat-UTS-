@@ -270,10 +270,9 @@ if page == "📊 Data Statistik":
 elif page == "🔍 Proses EDA":
     st.markdown(f"<h1 class='main-header'>🔍 Exploratory Data Analysis</h1>", unsafe_allow_html=True)
     
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3 = st.tabs([
         "📊 Data Cleaning", 
-        "📈 Outlier Analysis", 
-        "🔍 Correlation Analysis", 
+        "📈 Outlier Analysis",  
         "📋 Feature Engineering"
     ])
     
@@ -388,42 +387,42 @@ elif page == "🔍 Proses EDA":
             nilai di atas *Upper Bound* diganti menjadi *Upper Bound*.
             """)
 
-    # =============================
-    # TAB 3: Correlation Analysis
-    # =============================
-    with tab3:
-        st.header("🔍 Correlation Analysis")
+    # # =============================
+    # # TAB 3: Correlation Analysis
+    # # =============================
+    # with tab3:
+    #     st.header("🔍 Correlation Analysis")
         
-        numeric_df = df.select_dtypes(include=[np.number])
-        correlation_matrix = numeric_df.corr()
+    #     numeric_df = df.select_dtypes(include=[np.number])
+    #     correlation_matrix = numeric_df.corr()
         
-        fig = px.imshow(
-            correlation_matrix,
-            title="Correlation Matrix Heatmap",
-            color_continuous_scale=[COLORS['primary'], 'white', COLORS['dark_blue']],
-            aspect="auto"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    #     fig = px.imshow(
+    #         correlation_matrix,
+    #         title="Correlation Matrix Heatmap",
+    #         color_continuous_scale=[COLORS['primary'], 'white', COLORS['dark_blue']],
+    #         aspect="auto"
+    #     )
+    #     st.plotly_chart(fig, use_container_width=True)
         
-        # Top Positive and Negative Correlations
-        corr_pairs = correlation_matrix.unstack().sort_values(ascending=False)
-        top_positive = corr_pairs[corr_pairs < 1].head(10)
-        top_negative = corr_pairs.tail(10)
+    #     # Top Positive and Negative Correlations
+    #     corr_pairs = correlation_matrix.unstack().sort_values(ascending=False)
+    #     top_positive = corr_pairs[corr_pairs < 1].head(10)
+    #     top_negative = corr_pairs.tail(10)
 
-        st.subheader("Top Positive Correlations")
-        st.dataframe(top_positive.reset_index().rename(columns={
-            'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
-        }), use_container_width=True)
+    #     st.subheader("Top Positive Correlations")
+    #     st.dataframe(top_positive.reset_index().rename(columns={
+    #         'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
+    #     }), use_container_width=True)
         
-        st.subheader("Top Negative Correlations")
-        st.dataframe(top_negative.reset_index().rename(columns={
-            'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
-        }), use_container_width=True)
+    #     st.subheader("Top Negative Correlations")
+    #     st.dataframe(top_negative.reset_index().rename(columns={
+    #         'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
+    #     }), use_container_width=True)
     
     # =============================
-    # TAB 4: Feature Engineering
+    # TAB 3: Feature Engineering
     # =============================
-    with tab4:
+    with tab3:
         st.header("📋 Feature Engineering & Variable Identification")
         
         col1, col2 = st.columns(2)
