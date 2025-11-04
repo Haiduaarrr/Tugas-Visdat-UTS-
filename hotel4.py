@@ -815,7 +815,8 @@ if page == "📈 Visualisasi":
 
     **Analisis:**  
     - City Hotel menunjukkan fluktuasi besar dengan puncak pemesanan di bulan pertengahan tahun (musim liburan).  
-    - Resort Hotel memiliki tren yang lebih stabil, tetapi volume pemesanan lebih kecil secara keseluruhan.  
+    - Resort Hotel memiliki tren yang lebih stabil, tetapi volume pemesanan lebih kecil secara keseluruhan.
+    - Januari dan November tampak menjadi bulan-bulan tersepi untuk kedua jenis hotel. Penurunan paling tajam untuk City Hotel terjadi antara Agustus dan Oktober.
     """)
     with st.expander("📊 Kenapa Line Chart:"):
         st.markdown("""
@@ -844,7 +845,9 @@ if page == "📈 Visualisasi":
 
     **Analisis:**  
     - Mayoritas tamu merupakan pelanggan *Transient* (individu tanpa kontrak).  
-    - Jenis pelanggan *Group* dan *Contract* memiliki proporsi kecil, menunjukkan sebagian besar pelanggan datang untuk perjalanan pribadi.  
+    - Jenis pelanggan *Group* dan *Contract* memiliki proporsi kecil, menunjukkan sebagian besar pelanggan datang untuk perjalanan pribadi.
+    - Jika kita menggabungkan pelanggan Transient (75%) dan Transient-Party (21.1%), totalnya mencapai 96.1 persen dari seluruh pemesanan. Menunjukkan bahwa bisnis hotel sangat bergantung pada pelancong individu atau grup kecil yang memesan secara ad-hoc (tidak terikat kontrak). 
+    - Pelanggan Contract (korporat atau agen perjalanan dengan tarif khusus) dan Group (rombongan tur, konferensi) secara gabungan hanya menyumbang kurang dari 4 persen dari total pemesanan. 
     """)
     with st.expander("📊 Kenapa Pie Chart:"):
         st.markdown("""
