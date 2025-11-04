@@ -1,0 +1,26 @@
+# Git ignore rules 
+# Ignore Python cache & environment
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+
+# Ignore Streamlit logs
+.streamlit/
+
+# Ignore local datasets or checkpoints
+data/
+*.csv
+*.xlsx
+
+# Ignore VSCode settings
+.vscode/
+.DS_Store
+
+# Ignore old dashboard files
+dashboard-hotel-Hversion.py
+dashboard-hotel-Hversion2.py
+dashboard-hotel.py
+hotel.py
+tugas_visdat2.py
