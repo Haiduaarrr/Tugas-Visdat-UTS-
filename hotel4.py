@@ -484,6 +484,19 @@ if page == "📈 Visualisasi":
                         showarrow=False, font=dict(size=12, color="yellow"))
     st.plotly_chart(fig1, use_container_width=True)
 
+        # Tampilkan kode pembuatan visualisasi untuk dokumentasi
+    st.code("""
+    # Sunburst: pembatalan per hotel_type dan arrival_month
+    cancel_by_hotel_month = df.groupby(['hotel_type','arrival_month','canceled']).size().reset_index(name='count')
+    cancel_hierarchy = cancel_by_hotel_month[cancel_by_hotel_month['canceled'] == 1]
+    fig1 = px.sunburst(cancel_hierarchy, path=['hotel_type','arrival_month'], values='count',
+                    color='hotel_type', color_discrete_sequence=[COLORS['primary'], COLORS['orange']],
+                    title='Pola Pembatalan Berdasarkan Jenis Hotel dan Bulan')
+    fig1.add_annotation(text=f"{top_hotel} memiliki pembatalan terbanyak", x=0.95, y=0.95, xref="paper", yref="paper",
+                        showarrow=False, font=dict(size=12, color="yellow"))
+    st.plotly_chart(fig1, use_container_width=True)
+        """, language='python')
+
     st.markdown("""
     **Tujuan:**  
     Melihat pola pembatalan yang bergantung pada dua faktor hierarkis: jenis hotel dan bulan kedatangan.  
@@ -512,6 +525,15 @@ if page == "📈 Visualisasi":
     #                     showarrow=False, font=dict(size=35, color="lime"))
     st.plotly_chart(fig2, use_container_width=True)
 
+    st.code("""
+    # Scatter: lead_time vs avg_daily_rate, warna = canceled
+    fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
+                    title='Hubungan Lead Time dan Harga terhadap Pembatalan',
+                    color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
+                    hover_data=['hotel_type'])
+    st.plotly_chart(fig2, use_container_width=True)
+        """, language='python')
+
     st.markdown("""
     **Tujuan:**  
     Menganalisis hubungan antara lamanya waktu pemesanan sebelum check-in (lead time) dan harga rata-rata kamar terhadap kemungkinan pembatalan.  
@@ -536,6 +558,15 @@ if page == "📈 Visualisasi":
                      color_discrete_sequence=[COLORS['orange'], COLORS['purple']],
                      title='Distribusi Lama Menginap antara City dan Resort Hotel')
     st.plotly_chart(fig3, use_container_width=True)
+
+    st.code("""
+    # Violin: distribusi total_nights per hotel_type
+    fig3 = px.violin(df, x='hotel_type', y='total_nights', color='hotel_type',
+                    box=True, points='all',
+                    color_discrete_sequence=[COLORS['orange'], COLORS['purple']],
+                    title='Distribusi Lama Menginap antara City dan Resort Hotel')
+    st.plotly_chart(fig3, use_container_width=True)
+        """, language='python')
 
     st.markdown("""
     **Tujuan:**  
@@ -618,6 +649,20 @@ if page == "📈 Visualisasi":
     # --- 8. Tampilkan di Streamlit ---
     st.plotly_chart(fig4, use_container_width=True)
 
+    st.code("""
+    # Choropleth: rasio pembatalan per negara (country kode ISO-3)
+    cancel_by_country = df.groupby('country')['canceled'].mean().reset_index()
+    country_map_df = px.data.gapminder()[['iso_alpha','country']].drop_duplicates().rename(columns={'country':'country_full_name'})
+    merged_df = cancel_by_country.merge(country_map_df, left_on='country', right_on='iso_alpha', how='left')
+    fig4 = px.choropleth(merged_df, locations='country', locationmode='ISO-3', color='canceled',
+                        hover_name='country_full_name', custom_data=['country_full_name'],
+                        projection='natural earth', color_continuous_scale='Reds',
+                        title='Tingkat Pembatalan Berdasarkan Negara Asal', labels={'canceled':'Tingkat Pembatalan'})
+    fig4.update_layout(coloraxis_colorbar_tickformat=':.1%')
+    fig4.update_traces(hovertemplate='<b>%{customdata[0]} (%{location})</b><br>Tingkat Pembatalan: %{z:.2%}<extra></extra>')
+    st.plotly_chart(fig4, use_container_width=True)
+        """, language='python')
+
     # --- 9. Tampilkan analisis ---
     st.markdown(f"""
     **Tujuan:** Mengidentifikasi pola pembatalan berdasarkan asal negara tamu.  
@@ -681,6 +726,18 @@ if page == "📈 Visualisasi":
     avg_cancel = cancel_treemap['canceled'].mean()
     max_segment = cancel_treemap.loc[cancel_treemap['canceled'].idxmax()]
 
+    st.code("""
+    # Treemap: rata-rata pembatalan per (channel, customer_type) untuk channel terpilih
+    available_channels = df.loc[df['channel'].notna() & (df['channel'] != 'Undefined'), 'channel'].unique()
+    selected_channel = st.selectbox("Pilih Channel Distribusi:", options=available_channels, index=0)
+    filtered_data = df[(df['channel']==selected_channel) & (df['customer_type'].notna()) & (df['customer_type'] != 'Undefined')]
+    cancel_treemap = filtered_data.groupby(['channel','customer_type'])['canceled'].mean().reset_index()
+    fig = px.treemap(cancel_treemap, path=['channel','customer_type'], values='canceled', color='canceled',
+                    color_continuous_scale='RdPu', title=f"📊 Struktur Pembatalan untuk Channel: {selected_channel}",
+                    hover_data={'canceled':':.2f'})
+    fig.update_traces(textinfo='label+value+percent parent', texttemplate="<b>%{label}</b><br>Rasio: %{value:.2f}<br>(%{percentParent:.1%})")
+    st.plotly_chart(fig, use_container_width=True)
+        """, language='python')
 
     st.markdown("""
     **Tujuan:**  
@@ -700,7 +757,7 @@ if page == "📈 Visualisasi":
     st.markdown("""
     ---
 
-    ### 🧩 Kesimpulan Umum:
+    ### Kesimpulan Umum:
     - Channel **TA/TO (Travel Agent/Tour Operator)** mendominasi proporsi pembatalan secara keseluruhan.  
     Dalam channel ini, pelanggan **Transient** menunjukkan tingkat pembatalan **tertinggi**, mencerminkan fleksibilitas tinggi tamu individu.  
     - Channel **Corporate** menunjukkan tingkat pembatalan **menengah**, terutama pada segmen **Contract** dan **Transient-Party**, yang sering kali terkait dengan perjalanan bisnis.  
@@ -764,9 +821,19 @@ if page == "📈 Visualisasi":
 
     st.plotly_chart(fig6, use_container_width=True)
 
-    # =========================================================
-    # Analisis formal (format sesuai nomor 5)
-    # =========================================================
+    st.code("""
+    # Stacked horizontal bar: jumlah pemesanan per deposit & status canceled
+    df_bar = df.copy()
+    df_bar['canceled'] = df_bar['canceled'].map({0:'Not Canceled',1:'Canceled'})
+    deposit_cancel = df_bar.groupby(['deposit','canceled']).size().reset_index(name='count')
+    fig6 = px.bar(deposit_cancel, y='deposit', x='count', color='canceled', orientation='h', barmode='relative',
+                text='count', labels={'deposit':'Jenis Deposit','count':'Jumlah Pemesanan','canceled':'Status Pembatalan'},
+                color_discrete_map={'Not Canceled':'#57D68D','Canceled':'#FF6B6B'})
+    fig6.update_traces(textposition='outside', textfont=dict(color='white'))
+    st.plotly_chart(fig6, use_container_width=True)
+        """, language='python')
+
+
     st.markdown("""
     **Tujuan:**  
     Mengetahui distribusi pembatalan pemesanan berdasarkan jenis deposit yang diterapkan oleh hotel.  
@@ -809,6 +876,16 @@ if page == "📈 Visualisasi":
     )
     st.plotly_chart(fig7, use_container_width=True)
 
+    st.code("""
+    # Line chart: jumlah pemesanan per bulan per hotel_type (urutkan bulan sebagai categorical)
+    month_order = ['January',...,'December']
+    monthly = df.groupby(['arrival_month','hotel_type']).size().reset_index(name='count')
+    monthly['arrival_month'] = pd.Categorical(monthly['arrival_month'], categories=month_order, ordered=True)
+    monthly = monthly.sort_values('arrival_month')
+    fig7 = px.line(monthly, x='arrival_month', y='count', color='hotel_type', markers=True, title='Tren Jumlah Pemesanan per Bulan per Jenis Hotel')
+    st.plotly_chart(fig7, use_container_width=True)
+        """, language='python')
+    
     st.markdown("""
     **Tujuan:**  
     Menelusuri pola musiman dan tren waktu pada jumlah pemesanan hotel berdasarkan jenis hotel.  
@@ -837,6 +914,14 @@ if page == "📈 Visualisasi":
         title='Proporsi Jenis Pelanggan terhadap Total Pemesanan'
     )
     st.plotly_chart(fig8, use_container_width=True)
+
+    st.code("""
+    # Pie chart: proporsi customer_type
+    customer_counts = df['customer_type'].value_counts().reset_index()
+    customer_counts.columns = ['customer_type','count']
+    fig8 = px.pie(customer_counts, names='customer_type', values='count', title='Proporsi Jenis Pelanggan terhadap Total Pemesanan')
+    st.plotly_chart(fig8, use_container_width=True)
+        """, language='python')
 
     st.markdown("""
     **Tujuan:**  
@@ -871,6 +956,15 @@ if page == "📈 Visualisasi":
     st.plotly_chart(fig9, use_container_width=True)
 
     corr_price = df['avg_daily_rate'].corr(df['canceled'])
+
+    st.code("""
+    # Scatter price vs canceled + korelasi
+    fig9 = px.scatter(df, x='avg_daily_rate', y='canceled', color='hotel_type', title='Korelasi antara Harga Kamar dan Pembatalan')
+    st.plotly_chart(fig9, use_container_width=True)
+    corr_price = df['avg_daily_rate'].corr(df['canceled'])
+    st.markdown(f"Korelasi antara harga kamar dan pembatalan: {corr_price:.3f}")
+        """, language='python')
+
     st.markdown(f"""
     **Tujuan:**  
     Menganalisis apakah harga kamar (ADR) memiliki hubungan dengan kemungkinan pembatalan.  
@@ -904,6 +998,13 @@ if page == "📈 Visualisasi":
     st.plotly_chart(fig10, use_container_width=True)
 
     meal_mean = df.groupby('meal_type')['avg_daily_rate'].mean().sort_values(ascending=False)
+    st.code("""
+    # Box plot: avg_daily_rate per meal_type, color by hotel_type
+    fig10 = px.box(df, x='meal_type', y='avg_daily_rate', color='hotel_type', title='Sebaran Harga per Malam Berdasarkan Jenis Makanan dan Jenis Hotel')
+    st.plotly_chart(fig10, use_container_width=True)
+    top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax()
+        """, language='python')
+
     st.markdown(f"""
     **Tujuan:**  
     Membandingkan variasi harga kamar berdasarkan jenis layanan makanan dan tipe hotel.  
