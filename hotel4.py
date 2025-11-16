@@ -855,21 +855,25 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 9. Scatter Chart – Korelasi Harga Kamar dan Pembatalan
     # =========================================================
-    st.subheader("💰 9. Scatter Chart – Korelasi Harga Kamar dan Pembatalan")
+    st.subheader("💰 9. Scatter Chart – Korelasi Harga Kamar dan Pembatalan")  # Menambahkan judul chart
 
+    # Buat scatter plot
     fig9 = px.scatter(
         df, x='avg_daily_rate', y='canceled', color='hotel_type',
         color_discrete_sequence=[COLORS['orange'], COLORS['accent']],
         title='Korelasi antara Harga Kamar dan Pembatalan'
-    )
+    ) 
+    # Tambahkan anotasi
     fig9.add_annotation(
         text="Hubungan lemah antara harga dan pembatalan",
         x=0.95, y=0.95, xref="paper", yref="paper",
         showarrow=False, font=dict(size=12, color="white")
-    )
-    st.plotly_chart(fig9, use_container_width=True)
+    ) 
+    st.plotly_chart(fig9, use_container_width=True)    # Tampilkan chart
 
-    corr_price = df['avg_daily_rate'].corr(df['canceled'])
+    corr_price = df['avg_daily_rate'].corr(df['canceled']) # Hitung korelasi
+
+    # Tampilkan analisis
     st.markdown(f"""
     **Tujuan:**  
     Menganalisis apakah harga kamar (ADR) memiliki hubungan dengan kemungkinan pembatalan.  
@@ -878,6 +882,7 @@ if page == "📈 Visualisasi":
     - Korelasi antara harga kamar dan pembatalan sangat lemah (**{corr_price:.3f}**).  
     - Pembatalan tidak banyak dipengaruhi oleh harga, tetapi lebih pada faktor waktu pemesanan dan preferensi tamu.  
     """)
+    # Tambahkan expander
     with st.expander("📊 Kenapa Scatter Chart:"):
         st.markdown("""
         - Menunjukkan hubungan linear atau pola penyebaran antara dua variabel numerik.  
@@ -887,22 +892,24 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 10. Box Plot – Perbandingan Harga Berdasarkan Jenis Hotel dan Jenis Makanan
     # =========================================================
-    st.subheader("🍽️ 10. Box Plot – Perbandingan Harga Berdasarkan Jenis Hotel dan Jenis Makanan")
+    st.subheader("🍽️ 10. Box Plot – Perbandingan Harga Berdasarkan Jenis Hotel dan Jenis Makanan")  # Untuk judul chart
 
+    # Buat box plot
     fig10 = px.box(
         df, x='meal_type', y='avg_daily_rate', color='hotel_type',
         color_discrete_sequence=['#FFA600', '#58508D'],
         title='Sebaran Harga per Malam Berdasarkan Jenis Makanan dan Jenis Hotel'
     )
-    top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax()
+    top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax() # Hitung meal type dengan harga tertinggi
+    # Tambahkan anotasi
     fig10.add_annotation(
         text=f"{top_meal} = harga tertinggi",
         x=0.95, y=0.95, xref="paper", yref="paper",
         showarrow=False, font=dict(size=12, color="white")
     )
-    st.plotly_chart(fig10, use_container_width=True)
+    st.plotly_chart(fig10, use_container_width=True)   # Tampilkan chart
 
-    meal_mean = df.groupby('meal_type')['avg_daily_rate'].mean().sort_values(ascending=False)
+    meal_mean = df.groupby('meal_type')['avg_daily_rate'].mean().sort_values(ascending=False)   # Hitung rata-rata harga per meal type
     st.markdown(f"""
     **Tujuan:**  
     Membandingkan variasi harga kamar berdasarkan jenis layanan makanan dan tipe hotel.  
@@ -910,7 +917,7 @@ if page == "📈 Visualisasi":
     **Analisis:**  
     - Jenis makanan “Half Board” memiliki rata-rata harga kamar tertinggi.  
     - Perbedaan antar meal type menunjukkan bahwa layanan makanan turut memengaruhi strategi harga kamar.  
-    """)
+    """) # Tambahkan analisis
     with st.expander("📊 Kenapa Box Plot:"):
         st.markdown("""
         - Memudahkan melihat sebaran, median, dan outlier antar kategori.  
