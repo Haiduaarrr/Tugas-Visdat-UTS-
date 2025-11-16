@@ -500,16 +500,41 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan
     # =========================================================
-    st.subheader("📈 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan")
+    # st.subheader("📈 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan")
 
-    fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
-                      title='Hubungan Lead Time dan Harga terhadap Pembatalan',
-                      color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
-                      hover_data=['hotel_type'])
-    # fig2.add_annotation(text="Lead time tinggi → pembatalan tinggi",
-    #                     x=0.95, y=0.95, xref="paper", yref="paper",
-    #                     showarrow=False, font=dict(size=35, color="lime"))
-    st.plotly_chart(fig2, use_container_width=True)
+    # fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
+    #                   title='Hubungan Lead Time dan Harga terhadap Pembatalan',
+    #                   color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
+    #                   hover_data=['hotel_type'])
+    # # fig2.add_annotation(text="Lead time tinggi → pembatalan tinggi",
+    # #                     x=0.95, y=0.95, xref="paper", yref="paper",
+    # #                     showarrow=False, font=dict(size=35, color="lime"))
+    # st.plotly_chart(fig2, use_container_width=True)
+    st.subheader("📈 2. Scatter Chart – Lead Time vs Average Daily Rate (Dipisah per Pembatalan)")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### ❌ Tidak Dibatalkan (0)")
+        fig2a = px.scatter(
+            df[df['canceled'] == 0],
+            x='lead_time', y='avg_daily_rate',
+            title="Scatter – Pesanan Tidak Dibatalkan",
+            color_discrete_sequence=["#3498db"],  # biru
+            hover_data=['hotel_type']
+        )
+        st.plotly_chart(fig2a, use_container_width=True)
+
+    with col2:
+        st.markdown("### ✅ Dibatalkan (1)")
+        fig2b = px.scatter(
+            df[df['canceled'] == 1],
+            x='lead_time', y='avg_daily_rate',
+            title="Scatter – Pesanan Dibatalkan",
+            color_discrete_sequence=["#ff8888"],  # merah
+            hover_data=['hotel_type']
+        )
+        st.plotly_chart(fig2b, use_container_width=True)
 
     st.markdown("""
     **Tujuan:**  
