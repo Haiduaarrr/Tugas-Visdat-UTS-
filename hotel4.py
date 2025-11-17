@@ -270,10 +270,9 @@ if page == "📊 Data Statistik":
 elif page == "🔍 Proses EDA":
     st.markdown(f"<h1 class='main-header'>🔍 Exploratory Data Analysis</h1>", unsafe_allow_html=True)
     
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3 = st.tabs([
         "📊 Data Cleaning", 
-        "📈 Outlier Analysis", 
-        "🔍 Correlation Analysis", 
+        "📈 Outlier Analysis",  
         "📋 Feature Engineering"
     ])
     
@@ -388,42 +387,42 @@ elif page == "🔍 Proses EDA":
             nilai di atas *Upper Bound* diganti menjadi *Upper Bound*.
             """)
 
-    # =============================
-    # TAB 3: Correlation Analysis
-    # =============================
-    with tab3:
-        st.header("🔍 Correlation Analysis")
+    # # =============================
+    # # TAB 3: Correlation Analysis
+    # # =============================
+    # with tab3:
+    #     st.header("🔍 Correlation Analysis")
         
-        numeric_df = df.select_dtypes(include=[np.number])
-        correlation_matrix = numeric_df.corr()
+    #     numeric_df = df.select_dtypes(include=[np.number])
+    #     correlation_matrix = numeric_df.corr()
         
-        fig = px.imshow(
-            correlation_matrix,
-            title="Correlation Matrix Heatmap",
-            color_continuous_scale=[COLORS['primary'], 'white', COLORS['dark_blue']],
-            aspect="auto"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    #     fig = px.imshow(
+    #         correlation_matrix,
+    #         title="Correlation Matrix Heatmap",
+    #         color_continuous_scale=[COLORS['primary'], 'white', COLORS['dark_blue']],
+    #         aspect="auto"
+    #     )
+    #     st.plotly_chart(fig, use_container_width=True)
         
-        # Top Positive and Negative Correlations
-        corr_pairs = correlation_matrix.unstack().sort_values(ascending=False)
-        top_positive = corr_pairs[corr_pairs < 1].head(10)
-        top_negative = corr_pairs.tail(10)
+    #     # Top Positive and Negative Correlations
+    #     corr_pairs = correlation_matrix.unstack().sort_values(ascending=False)
+    #     top_positive = corr_pairs[corr_pairs < 1].head(10)
+    #     top_negative = corr_pairs.tail(10)
 
-        st.subheader("Top Positive Correlations")
-        st.dataframe(top_positive.reset_index().rename(columns={
-            'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
-        }), use_container_width=True)
+    #     st.subheader("Top Positive Correlations")
+    #     st.dataframe(top_positive.reset_index().rename(columns={
+    #         'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
+    #     }), use_container_width=True)
         
-        st.subheader("Top Negative Correlations")
-        st.dataframe(top_negative.reset_index().rename(columns={
-            'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
-        }), use_container_width=True)
+    #     st.subheader("Top Negative Correlations")
+    #     st.dataframe(top_negative.reset_index().rename(columns={
+    #         'level_0': 'Var1', 'level_1': 'Var2', 0: 'Correlation'
+    #     }), use_container_width=True)
     
     # =============================
-    # TAB 4: Feature Engineering
+    # TAB 3: Feature Engineering
     # =============================
-    with tab4:
+    with tab3:
         st.header("📋 Feature Engineering & Variable Identification")
         
         col1, col2 = st.columns(2)
@@ -514,16 +513,41 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan
     # =========================================================
-    st.subheader("📈 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan")
+    # st.subheader("📈 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan")
 
-    fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
-                      title='Hubungan Lead Time dan Harga terhadap Pembatalan',
-                      color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
-                      hover_data=['hotel_type'])
-    # fig2.add_annotation(text="Lead time tinggi → pembatalan tinggi",
-    #                     x=0.95, y=0.95, xref="paper", yref="paper",
-    #                     showarrow=False, font=dict(size=35, color="lime"))
-    st.plotly_chart(fig2, use_container_width=True)
+    # fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
+    #                   title='Hubungan Lead Time dan Harga terhadap Pembatalan',
+    #                   color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
+    #                   hover_data=['hotel_type'])
+    # # fig2.add_annotation(text="Lead time tinggi → pembatalan tinggi",
+    # #                     x=0.95, y=0.95, xref="paper", yref="paper",
+    # #                     showarrow=False, font=dict(size=35, color="lime"))
+    # st.plotly_chart(fig2, use_container_width=True)
+    st.subheader("📈 2. Scatter Chart – Lead Time vs Average Daily Rate (Dipisah per Pembatalan)")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### ❌ Tidak Dibatalkan (0)")
+        fig2a = px.scatter(
+            df[df['canceled'] == 0],
+            x='lead_time', y='avg_daily_rate',
+            title="Scatter – Pesanan Tidak Dibatalkan",
+            color_discrete_sequence=["#3498db"],  # biru
+            hover_data=['hotel_type']
+        )
+        st.plotly_chart(fig2a, use_container_width=True)
+
+    with col2:
+        st.markdown("### ✅ Dibatalkan (1)")
+        fig2b = px.scatter(
+            df[df['canceled'] == 1],
+            x='lead_time', y='avg_daily_rate',
+            title="Scatter – Pesanan Dibatalkan",
+            color_discrete_sequence=["#ff8888"],  # merah
+            hover_data=['hotel_type']
+        )
+        st.plotly_chart(fig2b, use_container_width=True)
 
     st.code("""
     # Scatter: lead_time vs avg_daily_rate, warna = canceled
@@ -941,30 +965,23 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 9. Scatter Chart – Korelasi Harga Kamar dan Pembatalan
     # =========================================================
-    st.subheader("💰 9. Scatter Chart – Korelasi Harga Kamar dan Pembatalan")
+    st.subheader("💰 9. Scatter Chart – Korelasi Harga Kamar dan Pembatalan")  # Menambahkan judul chart
 
+    # Buat scatter plot
     fig9 = px.scatter(
         df, x='avg_daily_rate', y='canceled', color='hotel_type',
         color_discrete_sequence=[COLORS['orange'], COLORS['accent']],
         title='Korelasi antara Harga Kamar dan Pembatalan'
-    )
+    ) 
+    # Tambahkan anotasi
     fig9.add_annotation(
         text="Hubungan lemah antara harga dan pembatalan",
         x=0.95, y=0.95, xref="paper", yref="paper",
         showarrow=False, font=dict(size=12, color="white")
-    )
-    st.plotly_chart(fig9, use_container_width=True)
+    ) 
+    st.plotly_chart(fig9, use_container_width=True)    # Tampilkan chart
 
     corr_price = df['avg_daily_rate'].corr(df['canceled'])
-
-    st.code("""
-    # Scatter price vs canceled + korelasi
-    fig9 = px.scatter(df, x='avg_daily_rate', y='canceled', color='hotel_type', title='Korelasi antara Harga Kamar dan Pembatalan')
-    st.plotly_chart(fig9, use_container_width=True)
-    corr_price = df['avg_daily_rate'].corr(df['canceled'])
-    st.markdown(f"Korelasi antara harga kamar dan pembatalan: {corr_price:.3f}")
-        """, language='python')
-
     st.markdown(f"""
     **Tujuan:**  
     Menganalisis apakah harga kamar (ADR) memiliki hubungan dengan kemungkinan pembatalan.  
@@ -973,6 +990,7 @@ if page == "📈 Visualisasi":
     - Korelasi antara harga kamar dan pembatalan sangat lemah (**{corr_price:.3f}**).  
     - Pembatalan tidak banyak dipengaruhi oleh harga, tetapi lebih pada faktor waktu pemesanan dan preferensi tamu.  
     """)
+    # Tambahkan expander
     with st.expander("📊 Kenapa Scatter Chart:"):
         st.markdown("""
         - Menunjukkan hubungan linear atau pola penyebaran antara dua variabel numerik.  
@@ -982,37 +1000,32 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 10. Box Plot – Perbandingan Harga Berdasarkan Jenis Hotel dan Jenis Makanan
     # =========================================================
-    st.subheader("🍽️ 10. Box Plot – Perbandingan Harga Berdasarkan Jenis Hotel dan Jenis Makanan")
+    st.subheader("🍽️ 10. Box Plot – Perbandingan Harga Berdasarkan Jenis Hotel dan Jenis Makanan")  # Untuk judul chart
 
+    # Buat box plot
     fig10 = px.box(
         df, x='meal_type', y='avg_daily_rate', color='hotel_type',
         color_discrete_sequence=['#FFA600', '#58508D'],
         title='Sebaran Harga per Malam Berdasarkan Jenis Makanan dan Jenis Hotel'
     )
-    top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax()
+    top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax() # Hitung meal type dengan harga tertinggi
+    # Tambahkan anotasi
     fig10.add_annotation(
         text=f"{top_meal} = harga tertinggi",
         x=0.95, y=0.95, xref="paper", yref="paper",
         showarrow=False, font=dict(size=12, color="white")
     )
-    st.plotly_chart(fig10, use_container_width=True)
+    st.plotly_chart(fig10, use_container_width=True)   # Tampilkan chart
 
     meal_mean = df.groupby('meal_type')['avg_daily_rate'].mean().sort_values(ascending=False)
-    st.code("""
-    # Box plot: avg_daily_rate per meal_type, color by hotel_type
-    fig10 = px.box(df, x='meal_type', y='avg_daily_rate', color='hotel_type', title='Sebaran Harga per Malam Berdasarkan Jenis Makanan dan Jenis Hotel')
-    st.plotly_chart(fig10, use_container_width=True)
-    top_meal = df.groupby('meal_type')['avg_daily_rate'].mean().idxmax()
-        """, language='python')
-
     st.markdown(f"""
     **Tujuan:**  
     Membandingkan variasi harga kamar berdasarkan jenis layanan makanan dan tipe hotel.  
 
     **Analisis:**  
-    - Jenis makanan “Full Board” memiliki rata-rata harga kamar tertinggi (**{meal_mean.iloc[0]:.2f}**).  
+    - Jenis makanan “Half Board” memiliki rata-rata harga kamar tertinggi.  
     - Perbedaan antar meal type menunjukkan bahwa layanan makanan turut memengaruhi strategi harga kamar.  
-    """)
+    """) # Tambahkan analisis
     with st.expander("📊 Kenapa Box Plot:"):
         st.markdown("""
         - Memudahkan melihat sebaran, median, dan outlier antar kategori.  
