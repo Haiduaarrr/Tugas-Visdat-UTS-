@@ -483,19 +483,6 @@ if page == "📈 Visualisasi":
                         showarrow=False, font=dict(size=12, color="yellow"))
     st.plotly_chart(fig1, use_container_width=True)
 
-        # Tampilkan kode pembuatan visualisasi untuk dokumentasi
-    st.code("""
-    # Sunburst: pembatalan per hotel_type dan arrival_month
-    cancel_by_hotel_month = df.groupby(['hotel_type','arrival_month','canceled']).size().reset_index(name='count')
-    cancel_hierarchy = cancel_by_hotel_month[cancel_by_hotel_month['canceled'] == 1]
-    fig1 = px.sunburst(cancel_hierarchy, path=['hotel_type','arrival_month'], values='count',
-                    color='hotel_type', color_discrete_sequence=[COLORS['primary'], COLORS['orange']],
-                    title='Pola Pembatalan Berdasarkan Jenis Hotel dan Bulan')
-    fig1.add_annotation(text=f"{top_hotel} memiliki pembatalan terbanyak", x=0.95, y=0.95, xref="paper", yref="paper",
-                        showarrow=False, font=dict(size=12, color="yellow"))
-    st.plotly_chart(fig1, use_container_width=True)
-        """, language='python')
-
     st.markdown("""
     **Tujuan:**  
     Melihat pola pembatalan yang bergantung pada dua faktor hierarkis: jenis hotel dan bulan kedatangan.  
@@ -513,16 +500,7 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan
     # =========================================================
-    # st.subheader("📈 2. Scatter Chart – Hubungan Lead Time dan Average Daily Rate terhadap Pembatalan")
 
-    # fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
-    #                   title='Hubungan Lead Time dan Harga terhadap Pembatalan',
-    #                   color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
-    #                   hover_data=['hotel_type'])
-    # # fig2.add_annotation(text="Lead time tinggi → pembatalan tinggi",
-    # #                     x=0.95, y=0.95, xref="paper", yref="paper",
-    # #                     showarrow=False, font=dict(size=35, color="lime"))
-    # st.plotly_chart(fig2, use_container_width=True)
     st.subheader("📈 2. Scatter Chart – Lead Time vs Average Daily Rate (Dipisah per Pembatalan)")
 
     col1, col2 = st.columns(2)
@@ -549,15 +527,6 @@ if page == "📈 Visualisasi":
         )
         st.plotly_chart(fig2b, use_container_width=True)
 
-    st.code("""
-    # Scatter: lead_time vs avg_daily_rate, warna = canceled
-    fig2 = px.scatter(df, x='lead_time', y='avg_daily_rate', color='canceled',
-                    title='Hubungan Lead Time dan Harga terhadap Pembatalan',
-                    color_discrete_sequence=[COLORS['secondary'], COLORS['accent']],
-                    hover_data=['hotel_type'])
-    st.plotly_chart(fig2, use_container_width=True)
-        """, language='python')
-
     st.markdown("""
     **Tujuan:**  
     Menganalisis hubungan antara lamanya waktu pemesanan sebelum check-in (lead time) dan harga rata-rata kamar terhadap kemungkinan pembatalan.  
@@ -583,15 +552,6 @@ if page == "📈 Visualisasi":
                      title='Distribusi Lama Menginap antara City dan Resort Hotel')
     st.plotly_chart(fig3, use_container_width=True)
 
-    st.code("""
-    # Violin: distribusi total_nights per hotel_type
-    fig3 = px.violin(df, x='hotel_type', y='total_nights', color='hotel_type',
-                    box=True, points='all',
-                    color_discrete_sequence=[COLORS['orange'], COLORS['purple']],
-                    title='Distribusi Lama Menginap antara City dan Resort Hotel')
-    st.plotly_chart(fig3, use_container_width=True)
-        """, language='python')
-
     st.markdown("""
     **Tujuan:**  
     Membandingkan distribusi lama menginap tamu pada dua jenis hotel yang berbeda.  
@@ -610,92 +570,55 @@ if page == "📈 Visualisasi":
     # 4. Choropleth Map – Tingkat Pembatalan Berdasarkan Negara Asal
     # =========================================================
     st.subheader("🌍 4. Choropleth Map – Tingkat Pembatalan Berdasarkan Negara Asal")
-
-    # Data asli Anda
     cancel_by_country = df.groupby('country')['canceled'].mean().reset_index()
-
-    # --- 1. Siapkan data mapping (ISO -> Nama Negara) ---
-    gapminder_df = px.data.gapminder()
-    country_map_df = gapminder_df[['iso_alpha', 'country']].drop_duplicates().rename(
-        columns={'country': 'country_full_name'}
-    )
-
-    # --- 2. Gabungkan (merge) dataframe Anda dengan data mapping ---
+    gap = px.data.gapminder()[['iso_alpha', 'country', 'continent']].drop_duplicates()
+    gap = gap.rename(columns={'country': 'country_full_name'})
     merged_df = cancel_by_country.merge(
-        country_map_df,
+        gap,
         left_on='country',
         right_on='iso_alpha',
         how='left'
     )
-
-    # --- 3. Hitung top_country SETELAH digabung ---
-    top_country = merged_df.sort_values('canceled', ascending=False).head(1)
-
-    # --- 4. Buat visualisasi ---
+    # === Filter Benua ===
+    continents = merged_df['continent'].dropna().unique()
+    selected_continent = st.selectbox("🌎 Pilih Benua:", options=continents)
+    filtered_map = merged_df[merged_df['continent'] == selected_continent]
+    top_country = filtered_map.sort_values('canceled', ascending=False).head(1)
     fig4 = px.choropleth(
-        merged_df,
+        filtered_map,
         locations='country',
         locationmode='ISO-3',
         color='canceled',
         hover_name='country_full_name',
-        custom_data=['country_full_name'], # <-- [!!!] 1. TAMBAHKAN INI
+        custom_data=['country_full_name'],
         projection='natural earth',
         color_continuous_scale='Reds',
-        title='Tingkat Pembatalan Berdasarkan Negara Asal',
+        title=f"Tingkat Pembatalan Berdasarkan Negara Asal – {selected_continent}",
         labels={'canceled': 'Tingkat Pembatalan'}
     )
 
-    # --- 5. Format colorbar (legenda) ---
-    fig4.update_layout(
-        coloraxis_colorbar_tickformat=':.1%'
-    )
-
-    # --- 6. Format hovertemplate ---
+    fig4.update_layout(coloraxis_colorbar_tickformat=':.1%')
     fig4.update_traces(
-        # [!!!] 2. GANTI %{hover_name} menjadi %{customdata[0]}
         hovertemplate='<b>%{customdata[0]} (%{location})</b><br>Tingkat Pembatalan: %{z:.2%}<extra></extra>'
     )
-
-    # --- 7. Tambahkan anotasi ---
-    top_country_value = top_country.iloc[0]['canceled']
-    top_country_name = top_country.iloc[0].get('country_full_name', top_country.iloc[0]['country']) # Fallback
-    top_country_iso = top_country.iloc[0]['country']
-
+    tc = top_country.iloc[0]
     fig4.add_annotation(
-        text=f"Tertinggi: {top_country_name} ({top_country_iso})<br>{top_country_value:.1%}",
+        text=f"Tertinggi: {tc['country_full_name']} ({tc['country']})<br>{tc['canceled']:.1%}",
         x=0.95, y=0.95, xref="paper", yref="paper",
         showarrow=False,
-        font=dict(size=12, color="black"),
-        bgcolor="rgba(255, 255, 255, 0.7)",
-        align="left"
-    )
-
-    # --- 8. Tampilkan di Streamlit ---
+        bgcolor="rgba(255,255,255,0.7)",
+        font=dict(color="black", size=14) )
     st.plotly_chart(fig4, use_container_width=True)
 
-    st.code("""
-    # Choropleth: rasio pembatalan per negara (country kode ISO-3)
-    cancel_by_country = df.groupby('country')['canceled'].mean().reset_index()
-    country_map_df = px.data.gapminder()[['iso_alpha','country']].drop_duplicates().rename(columns={'country':'country_full_name'})
-    merged_df = cancel_by_country.merge(country_map_df, left_on='country', right_on='iso_alpha', how='left')
-    fig4 = px.choropleth(merged_df, locations='country', locationmode='ISO-3', color='canceled',
-                        hover_name='country_full_name', custom_data=['country_full_name'],
-                        projection='natural earth', color_continuous_scale='Reds',
-                        title='Tingkat Pembatalan Berdasarkan Negara Asal', labels={'canceled':'Tingkat Pembatalan'})
-    fig4.update_layout(coloraxis_colorbar_tickformat=':.1%')
-    fig4.update_traces(hovertemplate='<b>%{customdata[0]} (%{location})</b><br>Tingkat Pembatalan: %{z:.2%}<extra></extra>')
-    st.plotly_chart(fig4, use_container_width=True)
-        """, language='python')
-
-    # --- 9. Tampilkan analisis ---
     st.markdown(f"""
-    **Tujuan:** Mengidentifikasi pola pembatalan berdasarkan asal negara tamu.  
+    **Tujuan:** Menunjukkan variasi tingkat pembatalan berdasarkan negara asal tamu untuk memahami pola geografis yang memengaruhi perilaku pembatalan. 
 
     **Analisis:** 
-    - Negara dengan jarak jauh dari lokasi hotel menunjukkan tingkat pembatalan yang lebih tinggi, kemungkinan karena faktor transportasi atau kebijakan visa.  
-    - Pembatalan lebih rendah ditemukan di negara-negara yang berdekatan atau memiliki akses transportasi mudah.  
+    - Tingkat pembatalan berbeda-beda antar negara, menunjukkan adanya faktor geografis, sosial, dan ekonomi yang memengaruhi keputusan pembatalan.
+    - Beberapa negara menampilkan tingkat pembatalan tinggi, yang bisa disebabkan oleh akses transportasi, biaya perjalanan, ketidakpastian jadwal, atau regulasi perjalanan.
+    - Negara dengan akses perjalanan yang lebih dekat dan stabil cenderung memiliki tingkat pembatalan lebih rendah.
+    """)
 
-    **Negara dengan pembatalan tertinggi:** **{top_country_name} ({top_country_iso})** """)
     with st.expander("📊 Kenapa Choropleth Map:"):
         st.markdown("""
         - Memudahkan pengamatan pola geografis dari data pembatalan.  
@@ -705,83 +628,41 @@ if page == "📈 Visualisasi":
     # =========================================================
     # 5. Treemap Interaktif – Struktur Pembatalan Berdasarkan Channel dan Tipe Pelanggan
     # =========================================================
-    st.subheader("🧩 5. Treemap Interaktif – Struktur Pembatalan Berdasarkan Channel dan Tipe Pelanggan")
-
-    # Buat daftar channel unik untuk dropdown filter (tanpa undefined)
-    available_channels = df.loc[df['channel'].notna() & (df['channel'] != 'Undefined'), 'channel'].unique()
-    selected_channel = st.selectbox("Pilih Channel Distribusi:", options=available_channels, index=0)
-
-    # Filter data berdasarkan pilihan channel dan hapus baris yang tidak valid
-    filtered_data = df[
-        (df['channel'] == selected_channel) &
-        (df['customer_type'].notna()) &
+    st.subheader("🧩 5. Treemap – Struktur Pembatalan Berdasarkan Channel & Customer Type")
+    clean_df = df[
+        df['channel'].notna() &
+        (df['channel'] != 'Undefined') &
+        df['customer_type'].notna() &
         (df['customer_type'] != 'Undefined')
     ]
-
-    # Grouping data pembatalan
     cancel_treemap = (
-        filtered_data.groupby(['channel', 'customer_type'])['canceled']
+        clean_df.groupby(['channel', 'customer_type'])['canceled']
         .mean()
         .reset_index()
     )
-
-    # Buat Treemap
-    fig = px.treemap(
+    fig5 = px.treemap(
         cancel_treemap,
         path=['channel', 'customer_type'],
         values='canceled',
         color='canceled',
         color_continuous_scale='RdPu',
-        title=f"📊 Struktur Pembatalan untuk Channel: {selected_channel}",
+        title="📊 Struktur Pembatalan Berdasarkan Channel & Customer Type",
         hover_data={'canceled': ':.2f'}
     )
-
-    # Tambahkan label
-    fig.update_traces(
+    fig5.update_traces(
         textinfo='label+value+percent parent',
         texttemplate="<b>%{label}</b><br>Rasio: %{value:.2f}<br>(%{percentParent:.1%})",
         textfont_size=13,
         marker=dict(line=dict(width=2, color='white'))
     )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Insight dinamis
-    avg_cancel = cancel_treemap['canceled'].mean()
-    max_segment = cancel_treemap.loc[cancel_treemap['canceled'].idxmax()]
-
-    st.code("""
-    # Treemap: rata-rata pembatalan per (channel, customer_type) untuk channel terpilih
-    available_channels = df.loc[df['channel'].notna() & (df['channel'] != 'Undefined'), 'channel'].unique()
-    selected_channel = st.selectbox("Pilih Channel Distribusi:", options=available_channels, index=0)
-    filtered_data = df[(df['channel']==selected_channel) & (df['customer_type'].notna()) & (df['customer_type'] != 'Undefined')]
-    cancel_treemap = filtered_data.groupby(['channel','customer_type'])['canceled'].mean().reset_index()
-    fig = px.treemap(cancel_treemap, path=['channel','customer_type'], values='canceled', color='canceled',
-                    color_continuous_scale='RdPu', title=f"📊 Struktur Pembatalan untuk Channel: {selected_channel}",
-                    hover_data={'canceled':':.2f'})
-    fig.update_traces(textinfo='label+value+percent parent', texttemplate="<b>%{label}</b><br>Rasio: %{value:.2f}<br>(%{percentParent:.1%})")
-    st.plotly_chart(fig, use_container_width=True)
-        """, language='python')
+    st.plotly_chart(fig5, use_container_width=True)
 
     st.markdown("""
     **Tujuan:**  
     Mengetahui kontribusi dan kecenderungan pembatalan pemesanan berdasarkan *saluran distribusi (channel)* serta *tipe pelanggan (customer type)*.  
     Visualisasi ini membantu memahami bagaimana pola pembatalan berbeda antara pelanggan individual, grup, dan kontrak melalui berbagai jalur pemesanan.
-    """)
 
-    st.markdown(f"""
-    **Analisis dan Interpretasi – Channel {selected_channel}:**  
-    - Rata-rata pembatalan: **{avg_cancel:.2%}**  
-    - Tipe pelanggan dengan pembatalan tertinggi: **{max_segment['customer_type']}** ({max_segment['canceled']:.2%})  
-
-    Channel **{selected_channel}** menunjukkan variasi tingkat pembatalan antar tipe pelanggan.  
-    Tipe **{max_segment['customer_type']}** menjadi penyumbang terbesar terhadap rasio pembatalan, menandakan adanya potensi risiko pada segmen ini.  
-    """)
-
-    st.markdown("""
-    ---
-
-    ### Kesimpulan Umum:
+    **Analisis:** 
     - Channel **TA/TO (Travel Agent/Tour Operator)** mendominasi proporsi pembatalan secara keseluruhan.  
     Dalam channel ini, pelanggan **Transient** menunjukkan tingkat pembatalan **tertinggi**, mencerminkan fleksibilitas tinggi tamu individu.  
     - Channel **Corporate** menunjukkan tingkat pembatalan **menengah**, terutama pada segmen **Contract** dan **Transient-Party**, yang sering kali terkait dengan perjalanan bisnis.  
@@ -799,64 +680,49 @@ if page == "📈 Visualisasi":
 
 
     # =========================================================
-    # 6. Stacked Horizontal Bar Chart – Pembatalan Berdasarkan Jenis Deposit 
+    # 6. Stacked Vertical Bar Chart – Pembatalan Berdasarkan Jenis Deposit 
     # =========================================================
-    st.subheader("🟠 6. Stacked Horizontal Bar Chart – Pembatalan Berdasarkan Jenis Deposit")
-
-    # Gunakan salinan agar kolom 'canceled' di df utama tetap numerik
+    st.subheader("🟠 6. Stacked Vertical Bar Chart – Pembatalan Berdasarkan Jenis Deposit")
     df_bar = df.copy()
-    df_bar['canceled'] = df_bar['canceled'].map({0: 'Not Canceled', 1: 'Canceled'})
-
-    # Kelompokkan data
-    deposit_cancel = df_bar.groupby(['deposit', 'canceled']).size().reset_index(name='count')
-
-    # Buat bar chart horizontal dengan tema gelap (konsisten dengan nomor 5)
+    df_bar = df_bar[df_bar['deposit'].notna()]
+    df_bar = df_bar[df_bar['deposit'] != "undefined"]
+    df_bar['canceled_label'] = df_bar['canceled'].map({0: 'Not Canceled', 1: 'Canceled'})
+    deposit_cancel = (
+        df_bar.groupby(['deposit', 'canceled_label'])
+        .size()
+        .reset_index(name='count'))
     fig6 = px.bar(
         deposit_cancel,
-        y='deposit',
-        x='count',
-        color='canceled',
-        orientation='h',
-        title='Proporsi Pembatalan Berdasarkan Jenis Deposit',
-        barmode='relative',
+        x='deposit',
+        y='count',
+        color='canceled_label',
+        barmode='stack',
+        title='Jumlah Pemesanan per Jenis Deposit & Status Pembatalan',
         text='count',
         labels={
             'deposit': 'Jenis Deposit',
             'count': 'Jumlah Pemesanan',
-            'canceled': 'Status Pembatalan'
+            'canceled_label': 'Status Pembatalan'
         },
         color_discrete_map={
-            'Not Canceled': '#57D68D',  # hijau lembut
-            'Canceled': '#FF6B6B'       # merah lembut
-        }
-    )
-
-    # Pengaturan visual (dark mode dan teks putih)
+            'Not Canceled': '#57D68D',
+            'Canceled': '#FF6B6B'
+        })
     fig6.update_traces(
         textposition='outside',
-        textfont=dict(color='white')
-    )
+        textfont=dict(color='white', size=12))
     fig6.update_layout(
+        width=900,
+        height=600,
         font=dict(color='white', size=14),
         title_font=dict(color='white', size=18),
         legend=dict(font=dict(color='white')),
-        yaxis={'categoryorder': 'total ascending'}
-    )
-
+        xaxis={'categoryorder': 'total ascending'},
+        yaxis=dict(
+            rangemode='tozero',
+            title='Jumlah Data',
+            tickformat=',d'))
     st.plotly_chart(fig6, use_container_width=True)
-
-    st.code("""
-    # Stacked horizontal bar: jumlah pemesanan per deposit & status canceled
-    df_bar = df.copy()
-    df_bar['canceled'] = df_bar['canceled'].map({0:'Not Canceled',1:'Canceled'})
-    deposit_cancel = df_bar.groupby(['deposit','canceled']).size().reset_index(name='count')
-    fig6 = px.bar(deposit_cancel, y='deposit', x='count', color='canceled', orientation='h', barmode='relative',
-                text='count', labels={'deposit':'Jenis Deposit','count':'Jumlah Pemesanan','canceled':'Status Pembatalan'},
-                color_discrete_map={'Not Canceled':'#57D68D','Canceled':'#FF6B6B'})
-    fig6.update_traces(textposition='outside', textfont=dict(color='white'))
-    st.plotly_chart(fig6, use_container_width=True)
-        """, language='python')
-
 
     st.markdown("""
     **Tujuan:**  
@@ -864,17 +730,19 @@ if page == "📈 Visualisasi":
     Visualisasi ini digunakan untuk mengidentifikasi hubungan antara kebijakan deposit dan kecenderungan pembatalan oleh pelanggan.  
 
     **Analisis:**  
-    - Kategori *No Deposit* menunjukkan tingkat pembatalan tertinggi dibandingkan dengan kategori deposit lainnya.  
-    - Ketiadaan kewajiban pembayaran di awal memberi keleluasaan bagi pelanggan untuk membatalkan pemesanan tanpa risiko finansial.  
-    - Sebaliknya, kategori *Non Refund* memperlihatkan tingkat pembatalan paling rendah karena adanya konsekuensi finansial jika terjadi pembatalan.  
-    - Temuan ini menegaskan bahwa kebijakan deposit memiliki pengaruh signifikan terhadap perilaku pembatalan pelanggan.  
+    - Kategori No Deposit menunjukkan tingkat pembatalan tertinggi dibandingkan dengan kategori deposit lainnya.
+    - Ketiadaan kewajiban pembayaran di awal memberi keleluasaan bagi pelanggan untuk membatalkan pemesanan tanpa risiko finansial.
+    - Sebaliknya, kategori Non Refund memperlihatkan tingkat pembatalan paling rendah karena adanya konsekuensi finansial jika terjadi pembatalan.
+    - Temuan ini menegaskan bahwa kebijakan deposit memiliki pengaruh signifikan terhadap perilaku pembatalan pelanggan.
+    - Kebijakan Refundable (deposit yang dapat dikembalikan) memiliki volume pemesanan total yang sangat kecil, tetapi merupakan kategori yang paling sehat dengan tingkat pembatalan paling rendah. Ini menunjukkan pelanggan yang memilih opsi ini adalah pelanggan serius yang menghargai fleksibilitas.
+
     """)
 
-    with st.expander("📊 Kenapa pakai horizontal bar chart:"):
+    with st.expander("📊 Kenapa pakai bar chart:"):
         st.markdown("""
-        - Memudahkan perbandingan antar kategori terutama jika label kategorinya panjang.  
-        - Orientasi horizontal memberikan ruang yang lebih proporsional dan mudah dibaca.  
-        - Cocok untuk menunjukkan distribusi jumlah pemesanan pada setiap jenis deposit secara visual dan terstruktur.
+        - Stacked bar chart memudahkan perbandingan proporsi Canceled vs Not Canceled dalam satu kategori secara langsung.
+        - Bentuk vertikal memudahkan pembacaan karena jumlah pemesanan secara alami naik ke atas.
+        - Lebih informatif untuk menampilkan total nilai sekaligus komposisi status pembatalan pada tiap jenis deposit.
         """)
 
     # =========================================================
@@ -900,16 +768,6 @@ if page == "📈 Visualisasi":
     )
     st.plotly_chart(fig7, use_container_width=True)
 
-    st.code("""
-    # Line chart: jumlah pemesanan per bulan per hotel_type (urutkan bulan sebagai categorical)
-    month_order = ['January',...,'December']
-    monthly = df.groupby(['arrival_month','hotel_type']).size().reset_index(name='count')
-    monthly['arrival_month'] = pd.Categorical(monthly['arrival_month'], categories=month_order, ordered=True)
-    monthly = monthly.sort_values('arrival_month')
-    fig7 = px.line(monthly, x='arrival_month', y='count', color='hotel_type', markers=True, title='Tren Jumlah Pemesanan per Bulan per Jenis Hotel')
-    st.plotly_chart(fig7, use_container_width=True)
-        """, language='python')
-    
     st.markdown("""
     **Tujuan:**  
     Menelusuri pola musiman dan tren waktu pada jumlah pemesanan hotel berdasarkan jenis hotel.  
@@ -938,14 +796,6 @@ if page == "📈 Visualisasi":
         title='Proporsi Jenis Pelanggan terhadap Total Pemesanan'
     )
     st.plotly_chart(fig8, use_container_width=True)
-
-    st.code("""
-    # Pie chart: proporsi customer_type
-    customer_counts = df['customer_type'].value_counts().reset_index()
-    customer_counts.columns = ['customer_type','count']
-    fig8 = px.pie(customer_counts, names='customer_type', values='count', title='Proporsi Jenis Pelanggan terhadap Total Pemesanan')
-    st.plotly_chart(fig8, use_container_width=True)
-        """, language='python')
 
     st.markdown("""
     **Tujuan:**  
